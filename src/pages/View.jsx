@@ -3,8 +3,12 @@ import Header from '../components/Header'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { addToWishlist } from '../redux/slices/wishlistSlice'
+import { addTocart } from '../redux/slices/cartSlice'
+
 
 const View = () => {
+      const userCart=useSelector(state=>state.cartReducer)
+  
   const dispatch=useDispatch()
   const userWishlist=useSelector(state=>state.wishListReducer)
   const[product,setProduct]=useState({})
@@ -31,6 +35,18 @@ if(sessionStorage.getItem("allProducts")){
   }
   else{
     dispatch(addToWishlist(product))
+    alert("Product added to wishlist")
+  }
+ }
+
+  const handleCart=()=>{
+    dispatch(addTocart(product))
+  const existingCart=userCart?.find(item=>item?.id==id)
+  if(existingCart){
+    alert("Product already exist in wishlist!!")
+  }
+  else{
+    
     alert("Product added to wishlist")
   }
  }
@@ -67,7 +83,7 @@ if(sessionStorage.getItem("allProducts")){
    }
    <div className='flex justify-evenly'>
     <button onClick={handleWishlist} className='bg-blue-700 rounded text-white p-2'>ADD TO WHISHLIST</button>
-    <button className='bg-green-700 rounded text-white p-2'>ADD TO CART</button>
+    <button onClick={handleCart} className='bg-green-700 rounded text-white p-2'>ADD TO CART</button>
    </div>
     </div>
     </div>

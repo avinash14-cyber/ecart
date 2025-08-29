@@ -1,11 +1,38 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../components/Header'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { decrementQuantity, emptyCart, incrementQuantity, removecartItem } from '../redux/slices/cartSlice'
 const Cart = () => {
+        const userCart=useSelector(state=>state.cartReducer)
+        const dispatch=useDispatch()
+        const [cartTotal,setCartTotal]=useState(0)
+        useEffect(()=>{
+          if(userCart?.length>0){
+            setCartTotal(userCart.map(item=>item.totalPrice).reduce((a,b)=>a+b))
+          }
+        },[userCart])
+
+        const handleminus=(product)=>{
+          if(product?.quantity==1){
+            dispatch(removecartItem(product?.id))
+          }
+          else{
+              dispatch(decrementQuantity(product?.id))
+          }
+        }
+        const navigate=useNavigate()
+
+        const checkout=()=>{
+          dispatch(emptyCart())
+          alert("Thanks for purchasing")
+          navigate("/")
+        }
   return (
     <>
     <Header/>
     <div style={{paddingTop:'100px'}} className='px-5'>
+     {userCart?.length>0?
       <>
       <h1 className='text-5xl font-bold text-blue-600'>Cart summary</h1>
       <div className='grid grid-cols-3 gap-4 mt-5'>
@@ -21,37 +48,47 @@ const Cart = () => {
             </tr>
            </thead>
            <tbody>
-            <tr>
-              <td>1</td>
-              <td>Product Name</td>
-              <td><img width={'70px'} height={'70px'} src="https://redtape.com/cdn/shop/files/RSL1017_1.jpg?v=1755859973" alt="" /></td>
+            {
+              userCart.map((product,index)=>(
+                <tr>
+              <td>{index+1}</td>
+              <td>{product.title}</td>
+              <td><img width={'70px'} height={'70px'} src={product.thumbnail} alt="" /></td>
               <td>
                 <div className='flex'>
-                  <button className='font-bold'>-</button>
-                  <input style={{width:'40px'}} type="text" className='border p-1 rounded mx-2' value={12} readOnly />
-                  <button className='font-bold'>+</button>
+                  <button onClick={()=>{handleminus(product)}} className='font-bold'>-</button>
+                  <input style={{width:'40px'}} type="text" className='border p-1 rounded mx-2' value={product.quantity} readOnly />
+                  <button onClick={()=>dispatch(incrementQuantity(product?.id))} className='font-bold'>+</button>
                 </div>
               </td>
-              <td>$ 250</td>
-              <td><button className='text-red-600'><i className='fa-solid fa-trash'></i></button></td>
+              <td>$ {product.totalPrice}</td>
+              <td><button onClick={()=>dispatch(removecartItem(product?.id))} className='text-red-600'><i className='fa-solid fa-trash'></i></button></td>
             </tr>
+              ))
+            }
            </tbody>
           </table>
           <div className='float-right mt-5'>
-            <button className='bg-red-600 rounded p-2 text-white'>Empty Cart</button>
+            <button onClick={()=>dispatch(emptyCart())} className='bg-red-600 rounded p-2 text-white'>Empty Cart</button>
             <Link to={'/'} className='bg-blue-600 ms-3 rounded p-2 text-white' >Shop More</Link>
           </div>
         </div>
          <div className='col-span-1'>
           <div className='border rounded shadow p-5'>
-          <h2 className='text-2xl font-bold'>Total Amount: <span className='text-red-600'>$250</span></h2>
+          <h2 className='text-2xl font-bold'>Total Amount: <span className='text-red-600'>{cartTotal}</span></h2>
           <hr />
-          <button className='bg-green-600 rounded p-2 text-white w-full mt-4'>Check Out</button>
+          <button onClick={checkout} className='bg-green-600 rounded p-2 text-white w-full mt-4'>Check Out</button>
           </div>
          </div>
       </div>
       
       </>
+      :
+       <div className='flex-column justify-center items-center h-screen'>
+              <img src="https://cdn.dribbble.com/userupload/32744211/file/original-888ecc665e715aa9433dcc0e35c0078c.gif" alt="" />
+              <h1 className='text-3xl text-red-600'>Your Cart is empty</h1>
+            </div>
+     }
 
     </div>
     </>
